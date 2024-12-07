@@ -1,0 +1,207 @@
+Started by GitHub push by tarun-code
+Obtained jenkinsfile from git https://github.com/tarun-code/Netflix-Clone.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/cicd
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential git-credentials
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/cicd/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/tarun-code/Netflix-Clone.git # timeout=10
+Fetching upstream changes from https://github.com/tarun-code/Netflix-Clone.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.40.1'
+using GIT_ASKPASS to set credentials GitHub-Token
+ > git fetch --tags --force --progress -- https://github.com/tarun-code/Netflix-Clone.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision 64b9e7198daea96281a724e06c6fd4a6487546d5 (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 64b9e7198daea96281a724e06c6fd4a6487546d5 # timeout=10
+Commit message: "Update Dockerfile"
+ > git rev-list --no-walk 468b196f6bee033295f90a308d4a3e221ec9c8bb # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Clone Repository)
+[Pipeline] withCredentials
+Masking supported pattern matches of $GIT_TOKEN
+[Pipeline] {
+[Pipeline] sh
++ rm -rf Netflix-Clone
++ git clone --branch master https://****@github.com/tarun-code/Netflix-Clone.git
+Cloning into 'Netflix-Clone'...
++ cd Netflix-Clone
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build Docker Image)
+[Pipeline] sh
++ cd Netflix-Clone
++ docker build -t tarunshori/netflix:latest .
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 683B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:18
+#2 DONE 0.6s
+
+#3 [internal] load metadata for docker.io/library/nginx:alpine
+#3 DONE 0.6s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [build 1/6] FROM docker.io/library/node:18@sha256:b57ae84fe7880a23b389f8260d726b784010ed470c2ee26d4e2cbdb955d25b12
+#5 DONE 0.0s
+
+#6 [stage-1 1/2] FROM docker.io/library/nginx:alpine@sha256:41523187cf7d7a2f2677a80609d9caa14388bf5c1fbca9c410ba3de602aaaab4
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 1.64MB 0.0s done
+#7 DONE 0.0s
+
+#8 [build 2/6] WORKDIR /app
+#8 CACHED
+
+#9 [build 3/6] COPY package.json package-lock.json ./
+#9 CACHED
+
+#10 [build 4/6] RUN npm install
+#10 CACHED
+
+#11 [build 5/6] COPY . ./
+#11 DONE 0.1s
+
+#12 [build 6/6] RUN npm run build
+#12 0.496 
+#12 0.496 > netflix@0.1.0 build
+#12 0.496 > react-scripts build
+#12 0.496 
+#12 2.413 Creating an optimized production build...
+#12 2.580 Browserslist: caniuse-lite is outdated. Please run:
+#12 2.580   npx update-browserslist-db@latest
+#12 2.580   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+#12 19.63 Browserslist: caniuse-lite is outdated. Please run:
+#12 19.63   npx update-browserslist-db@latest
+#12 19.63   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+#12 20.58 Compiled successfully.
+#12 20.58 
+#12 20.58 File sizes after gzip:
+#12 20.58 
+#12 20.59   68.35 kB  build/static/js/main.1989be43.js
+#12 20.59   880 B     build/static/css/main.056aaffe.css
+#12 20.59 
+#12 20.59 The project was built assuming it is hosted at /.
+#12 20.59 You can control this with the homepage field in your package.json.
+#12 20.59 
+#12 20.60 The build folder is ready to be deployed.
+#12 20.60 You may serve it with a static server:
+#12 20.60 
+#12 20.60   npm install -g serve
+#12 20.60   serve -s build
+#12 20.60 
+#12 20.60 Find out more about deployment here:
+#12 20.60 
+#12 20.60   https://cra.link/deployment
+#12 20.60 
+#12 DONE 20.8s
+
+#13 [stage-1 2/2] COPY --from=build /app/build /usr/share/nginx/html
+#13 CACHED
+
+#14 exporting to image
+#14 exporting layers done
+#14 writing image sha256:c52a479a4ac8e727810749fe063723f762f24552229b540a5e8026f29308f93b done
+#14 naming to docker.io/tarunshori/netflix:latest done
+#14 DONE 0.0s
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Push Docker Image)
+[Pipeline] withCredentials
+Masking supported pattern matches of $DOCKER_PASS
+[Pipeline] {
+[Pipeline] sh
++ docker login -u tarunshori --password-stdin
++ echo ****
+WARNING! Your password will be stored unencrypted in /var/lib/jenkins/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
++ docker push tarunshori/netflix:latest
+The push refers to repository [docker.io/tarunshori/netflix]
+8a7921378914: Preparing
+2430c01bea64: Preparing
+b11b58162504: Preparing
+8b5ce426f73d: Preparing
+884b72c14f15: Preparing
+4a37d1b49911: Preparing
+4e8a0009474a: Preparing
+287563f25f8b: Preparing
+75654b8eeebd: Preparing
+4a37d1b49911: Waiting
+4e8a0009474a: Waiting
+287563f25f8b: Waiting
+75654b8eeebd: Waiting
+b11b58162504: Layer already exists
+8a7921378914: Layer already exists
+2430c01bea64: Layer already exists
+884b72c14f15: Layer already exists
+8b5ce426f73d: Layer already exists
+4a37d1b49911: Layer already exists
+4e8a0009474a: Layer already exists
+287563f25f8b: Layer already exists
+75654b8eeebd: Layer already exists
+latest: digest: sha256:af29a198de5312a6c0e916744854799475cdf40651c55d49286107e49ac9f18a size: 2199
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy to Kubernetes)
+[Pipeline] withCredentials
+Masking supported pattern matches of $KUBECONFIG_FILE
+[Pipeline] {
+[Pipeline] sh
++ cp **** /tmp/kubeconfig
++ chmod 600 /tmp/kubeconfig
++ kubectl --kubeconfig=/tmp/kubeconfig set image deployment/netflix-clone-deployment netflix-clone=tarunshori/netflix:latest --record
+Flag --record has been deprecated, --record will be removed in the future
++ kubectl --kubeconfig=/tmp/kubeconfig rollout status deployment/netflix-clone-deployment
+deployment "netflix-clone-deployment" successfully rolled out
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] sh
++ rm -f /tmp/kubeconfig
+[Pipeline] echo
+Pipeline completed successfully!
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
