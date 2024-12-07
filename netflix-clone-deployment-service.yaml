@@ -5,7 +5,7 @@ metadata:
   labels:
     app: netflix-clone
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: netflix-clone
@@ -14,6 +14,8 @@ spec:
       labels:
         app: netflix-clone
     spec:
+      imagePullSecrets:
+      - name: my-docker-registry-secret
       containers:
       - name: netflix-clone
         image: tarunshori/netflix:latest
@@ -33,10 +35,12 @@ kind: Service
 metadata:
   name: netflix-clone-service
 spec:
+  externalTrafficPolicy: Local
+  type: NodePort  # Change this line from ClusterIP to NodePort
   selector:
     app: netflix-clone
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-  type: NodePort
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30001  # Specify the NodePort range (usually 30000-32767)
