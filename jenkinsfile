@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_IMAGE = 'tarunshori/netflix:latest'
+        KUBECONFIG_FILE = '/tmp/kubeconfig'
+    }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                withCredentials([string(credentialsId: 'git-token', variable: 'GIT_TOKEN')]) {
+                    sh '''
+                        rm -rf Netflix-Clone
+                        git clone --branch master https://${GIT_TOKEN}@github.com/tarun-code/Netflix-Clone.git
+                        cd Netflix-Clone
+                    '''
+                }
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    cd Netflix-Clone
+                    docker build -t ${DOCKER_IMAGE} .
+                '''
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
+                        docker push ${DOCKER_IMAGE}
+                    '''
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                    sh '''
+                        cp ${KUBECONFIG_FILE} /tmp/kubeconfig
+                        chmod 600 /tmp/kubeconfig
+                        kubectl --kubeconfig=/tmp/kubeconfig set image deployment/netflix-clone-deployment netflix-clone=${DOCKER_IMAGE} --record
+                        kubectl --kubeconfig=/tmp/kubeconfig rollout status deployment/netflix-clone-deployment
+                        
+                    '''
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh 'rm -f /tmp/kubeconfig'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
